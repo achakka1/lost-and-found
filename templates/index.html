@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Found on campus</h1>
+{% if items %}
+  <div class="grid-items">
+    {% for item in items %}{% include "_item_card.html" %}{% endfor %}
+  </div>
+{% else %}
+  <p>No items match.</p>
+{% endif %}
+{% endblock %}

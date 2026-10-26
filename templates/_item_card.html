@@ -1,0 +1,7 @@
+<article>
+  {% if item.photo_url %}<img src="{{ item.photo_url }}" alt="{{ item.title }}">{% endif %}
+  <h4><a href="/items/{{ item.id }}">{{ item.title }}</a></h4>
+  <small>📍 {{ item.location }}<br>📅 {{ item.found_date }}<br>
+    {% if item.returned %}✅ Returned{% else %}🔎 Unclaimed{% endif %}
+    · by <a href="/users/{{ item.username }}">{{ item.username }}</a></small>
+</article>

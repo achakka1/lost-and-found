@@ -39,6 +39,11 @@ init_db()
 seed(DB_PATH)
 
 
+ITEM_SELECT = """SELECT items.*, users.username
+                 FROM items JOIN users ON users.id = items.user_id"""
+
+
 @app.route("/")
 def index():
-    return "Lost & Found is alive"
+    items = get_db().execute(ITEM_SELECT + " ORDER BY found_date DESC").fetchall()
+    return render_template("index.html", items=items)
