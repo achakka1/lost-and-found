@@ -7,6 +7,8 @@ from flask import (Flask, render_template, request, redirect, url_for,
                    session, flash, g, abort)
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from seed import seed
+
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-change-me")
 DB_PATH = os.environ.get("DB_PATH", "lostfound.db")
@@ -34,6 +36,7 @@ def init_db():
 
 
 init_db()
+seed(DB_PATH)
 
 
 @app.route("/")
