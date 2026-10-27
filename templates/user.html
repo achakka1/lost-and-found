@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{{ user.username }}'s posts{% endblock %}
+{% block content %}
+<h1>👤 {{ user.username }}</h1>
+<p>
+  {{ items|length }} item{{ '' if items|length == 1 else 's' }} posted ·
+  🔎 {{ unclaimed_count }} unclaimed ·
+  ✅ {{ items|length - unclaimed_count }} returned
+</p>
+
+{% if g.user and g.user['id'] == user.id %}
+  <p><a href="/items/new" role="button">+ Post a found item</a></p>
+{% endif %}
+
+{% if items %}
+  <div class="grid-items">
+    {% for item in items %}{% include "_item_card.html" %}{% endfor %}
+  </div>
+{% else %}
+  <p>{{ user.username }} hasn't posted anything yet.</p>
+{% endif %}
+{% endblock %}

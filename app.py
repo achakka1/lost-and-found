@@ -199,6 +199,17 @@ def mark_returned(item_id):
     return redirect(url_for("item_detail", item_id=item_id))
 
 
+@app.route("/users/<username>")
+def user_page(username):
+    db = get_db()
+    user = db.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+    if user is None:
+        abort(404, f"No user named '{username}'.")
+    items = db.execute(ITEM_SELECT + " WHERE items.user_id = ? ORDER BY found_date DESC",
+                       (user["id"],)).fetchall()
+    unclaimed_count = sum(1 for i in items if not i["returned"])
+    return render_template("user.html", user=user, items=items, unclaimed_count=unclaimed_count)
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
-    
