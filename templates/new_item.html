@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Post an item{% endblock %}
+{% block content %}
+<h1>Post a found item</h1>
+<form method="post">
+  <label>What did you find? *
+    <input name="title" required maxlength="100" value="{{ request.form.title }}">
+  </label>
+  <label>Description
+    <textarea name="description" maxlength="500">{{ request.form.description }}</textarea>
+  </label>
+  <label>Where did you find it? *
+    <input name="location" required maxlength="100" value="{{ request.form.location }}">
+  </label>
+  <label>When? *
+    <input type="date" name="found_date" required max="{{ today }}"
+           value="{{ request.form.found_date or today }}">
+  </label>
+  <label>Photo URL (optional)
+    <input type="url" name="photo_url" placeholder="https://..." value="{{ request.form.photo_url }}">
+  </label>
+  <button type="submit">Post item</button>
+</form>
+{% endblock %}

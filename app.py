@@ -123,5 +123,40 @@ def logout():
     flash("Logged out.", "success")
     return redirect(url_for("index"))
 
-if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+
+@app.route("/items/new", methods=["GET", "POST"])
+@login_required
+def new_item():
+    if request.method == "POST":
+        f = request.form
+        title = f.get("title", "").strip()
+        description = f.get("description", "").strip()
+        location = f.get("location", "").strip()
+        found_date = f.get("found_date", "")
+        photo_url = f.get("photo_url", "").strip()
+
+        errors = []
+        if not title:
+            errors.append("Please say what you found.")
+        if not location:
+            errors.append("Please say where you found it.")
+        try:
+            if date.fromisoformat(found_date) > date.today():
+                errors.append("The date can't be in the future.")
+        except ValueError:
+            errors.append("Please enter a valid date.")
+        if photo_url and not photo_url.startswith(("http://", "https://")):
+            errors.append("Photo URL must start with http:// or https://")
+
+        if errors:
+            for e in errors:
+                flash(e, "error")
+        else:
+            db = get_db()
+            db.execute("""INSERT INTO items (user_id, title, description, location, found_date, photo_url)
+                          VALUES (?, ?, ?, ?, ?, ?)""",
+                       (g.user["id"], title, description, location, found_date, photo_url))
+            db.commit()
+            flash("Item posted!", "success")
+            return redirect(url_for("index"))
+    return render_template("new_item.html", today=date.today().isoformat())
