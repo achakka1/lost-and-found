@@ -4,4 +4,4 @@ This is a Flask app that allows people to see what's been found on campus and po
 
 ## How to run on Laptop
 
-First, clone the repo on GitHub, then create and activate the virtual environment using (python3 -m venv .venv) and (source .venv/bin/activate). Then install the packages with "pip install" and start the server with "python3 app.py". Then open http://127.0.0.1:5001 in your browser. The database is already filled with data, and you can register and make your own account. 
+First, clone the repo on GitHub, then create and activate the virtual environment using (python3 -m venv .venv) and (source .venv/bin/activate). Then install the packages with "pip install" and start the server with "python3 app.py". Then open https://lost-and-found-398458043501.us-central1.run.app in your browser. The database is already filled with data, and you can register and make your own account. 
