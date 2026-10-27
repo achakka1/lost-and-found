@@ -64,6 +64,13 @@ ITEM_SELECT = """SELECT items.*, users.username
                  FROM items JOIN users ON users.id = items.user_id"""
 
 
+def get_item_or_404(item_id):
+    item = get_db().execute(ITEM_SELECT + " WHERE items.id = ?", (item_id,)).fetchone()
+    if item is None:
+        abort(404, f"Item #{item_id} does not exist.")
+    return item
+
+
 @app.route("/")
 def index():
     items = get_db().execute(ITEM_SELECT + " ORDER BY found_date DESC").fetchall()
@@ -153,10 +160,33 @@ def new_item():
                 flash(e, "error")
         else:
             db = get_db()
-            db.execute("""INSERT INTO items (user_id, title, description, location, found_date, photo_url)
-                          VALUES (?, ?, ?, ?, ?, ?)""",
-                       (g.user["id"], title, description, location, found_date, photo_url))
+            cur = db.execute("""INSERT INTO items (user_id, title, description, location, found_date, photo_url)
+                                VALUES (?, ?, ?, ?, ?, ?)""",
+                             (g.user["id"], title, description, location, found_date, photo_url))
             db.commit()
             flash("Item posted!", "success")
-            return redirect(url_for("index"))
+            return redirect(url_for("item_detail", item_id=cur.lastrowid))
     return render_template("new_item.html", today=date.today().isoformat())
+
+
+@app.route("/items/<int:item_id>")
+def item_detail(item_id):
+    return render_template("item.html", item=get_item_or_404(item_id))
+
+
+@app.route("/items/<int:item_id>/returned", methods=["POST"])
+@login_required
+def mark_returned(item_id):
+    item = get_item_or_404(item_id)
+    if item["user_id"] != g.user["id"]:
+        abort(403, "You can only update your own posts.")
+    db = get_db()
+    db.execute("UPDATE items SET returned = 1 WHERE id = ?", (item_id,))
+    db.commit()
+    flash("Marked as returned. Nice work!", "success")
+    return redirect(url_for("item_detail", item_id=item_id))
+
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5001)
+    

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{ item.title }}{% endblock %}
+{% block content %}
+<article>
+  {% if item.photo_url %}
+    <img src="{{ item.photo_url }}" alt="{{ item.title }}" style="max-height: 350px; object-fit: cover; width: 100%; border-radius: 8px;">
+  {% endif %}
+  <h1>{{ item.title }}</h1>
+  <p>
+    {% if item.returned %}<mark>✅ Returned to owner</mark>{% else %}<mark>🔎 Still unclaimed</mark>{% endif %}
+  </p>
+  {% if item.description %}<p>{{ item.description }}</p>{% endif %}
+  <p>📍 <strong>Found at:</strong> {{ item.location }}<br>
+     📅 <strong>Date:</strong> {{ item.found_date }}<br>
+     👤 <strong>Posted by:</strong> <a href="/users/{{ item.username }}">{{ item.username }}</a></p>
+
+  {% if g.user and g.user['id'] == item.user_id and not item.returned %}
+    <form method="post" action="{{ url_for('mark_returned', item_id=item.id) }}">
+      <button type="submit">Mark as returned</button>
+    </form>
+  {% elif not g.user and not item.returned %}
+    <p><small>Is this yours? Contact <strong>{{ item.username }}</strong>. <a href="/login">Log in</a> to post items.</small></p>
+  {% endif %}
+</article>
+<a href="/">← Back to all items</a>
+{% endblock %}
