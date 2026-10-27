@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}{{ error.code }} {{ error.name }}{% endblock %}
+{% block content %}
+<article style="text-align: center;">
+  <h1 style="font-size: 4rem; margin-bottom: 0;">
+    {% if error.code == 404 %}🔍{% elif error.code == 403 %}🚫{% else %}⚠️{% endif %}
+  </h1>
+  <h2>{{ error.code }}: {{ error.name }}</h2>
+  <p>{{ error.description }}</p>
+  <a href="/" role="button">← Back to all items</a>
+</article>
+{% endblock %}

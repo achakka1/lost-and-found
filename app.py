@@ -5,6 +5,7 @@ from functools import wraps
 
 from flask import (Flask, render_template, request, redirect, url_for,
                    session, flash, g, abort)
+from werkzeug.exceptions import HTTPException
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from seed import seed
@@ -211,5 +212,13 @@ def user_page(username):
     return render_template("user.html", user=user, items=items, unclaimed_count=unclaimed_count)
 
 
+# ---------- errors ----------
+
+@app.errorhandler(HTTPException)
+def handle_http_error(e):
+    return render_template("error.html", error=e), e.code
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
+    
