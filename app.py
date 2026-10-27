@@ -73,8 +73,20 @@ def get_item_or_404(item_id):
 
 @app.route("/")
 def index():
-    items = get_db().execute(ITEM_SELECT + " ORDER BY found_date DESC").fetchall()
-    return render_template("index.html", items=items)
+    q = request.args.get("q", "").strip()
+    unclaimed = request.args.get("unclaimed") == "1"
+
+    sql = ITEM_SELECT + " WHERE 1 = 1"
+    params = []
+    if q:
+        sql += " AND (title LIKE ? OR description LIKE ? OR location LIKE ?)"
+        params += [f"%{q}%"] * 3
+    if unclaimed:
+        sql += " AND returned = 0"
+    sql += " ORDER BY found_date DESC"
+
+    items = get_db().execute(sql, params).fetchall()
+    return render_template("index.html", items=items, q=q, unclaimed=unclaimed)
 
 
 @app.route("/register", methods=["GET", "POST"])

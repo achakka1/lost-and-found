@@ -1,11 +1,33 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Found on campus</h1>
+
+<form method="get" action="/">
+  <fieldset role="group">
+    <input type="search" name="q" placeholder="Search by item, description or place…" value="{{ q }}">
+    <button type="submit">Search</button>
+  </fieldset>
+  <label>
+    <input type="checkbox" name="unclaimed" value="1" {% if unclaimed %}checked{% endif %}
+           onchange="this.form.submit()">
+    Show only items that are still unclaimed
+  </label>
+</form>
+
+{% if q or unclaimed %}
+  <p>
+    {{ items|length }} result{{ '' if items|length == 1 else 's' }}
+    {% if q %}for "<strong>{{ q }}</strong>"{% endif %}
+    {% if unclaimed %}(unclaimed only){% endif %}
+    · <a href="/">Clear</a>
+  </p>
+{% endif %}
+
 {% if items %}
   <div class="grid-items">
     {% for item in items %}{% include "_item_card.html" %}{% endfor %}
   </div>
 {% else %}
-  <p>No items match.</p>
+  <p>No items match your search.</p>
 {% endif %}
 {% endblock %}
