@@ -39,6 +39,27 @@ init_db()
 seed(DB_PATH)
 
 
+# ---------- auth helpers ----------
+
+@app.before_request
+def load_user():
+    uid = session.get("user_id")
+    g.user = (get_db().execute("SELECT * FROM users WHERE id = ?", (uid,)).fetchone()
+              if uid else None)
+
+
+def login_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if g.user is None:
+            flash("Please log in first.", "error")
+            return redirect(url_for("login", next=request.path))
+        return view(*args, **kwargs)
+    return wrapped
+
+
+# ---------- pages ----------
+
 ITEM_SELECT = """SELECT items.*, users.username
                  FROM items JOIN users ON users.id = items.user_id"""
 
@@ -47,3 +68,60 @@ ITEM_SELECT = """SELECT items.*, users.username
 def index():
     items = get_db().execute(ITEM_SELECT + " ORDER BY found_date DESC").fetchall()
     return render_template("index.html", items=items)
+
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        error = None
+        if not username or not password:
+            error = "Username and password are required."
+        elif len(username) > 30:
+            error = "Username must be 30 characters or fewer."
+        elif len(password) < 6:
+            error = "Password must be at least 6 characters."
+        if error is None:
+            try:
+                db = get_db()
+                db.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)",
+                           (username, generate_password_hash(password, method="pbkdf2:sha256")))
+                db.commit()
+            except sqlite3.IntegrityError:
+                error = f"Username '{username}' is already taken."
+            else:
+                flash("Account created. Please log in.", "success")
+                return redirect(url_for("login"))
+        flash(error, "error")
+    return render_template("auth.html", title="Register")
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        user = get_db().execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+        if user is None or not check_password_hash(user["password_hash"], password):
+            flash("Wrong username or password.", "error")
+        else:
+            session.clear()
+            session["user_id"] = user["id"]
+            flash(f"Welcome, {user['username']}!", "success")
+            nxt = request.args.get("next", "")
+            # only follow local paths, to avoid open redirects
+            if nxt.startswith("/") and not nxt.startswith("//"):
+                return redirect(nxt)
+            return redirect(url_for("index"))
+    return render_template("auth.html", title="Log in")
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    flash("Logged out.", "success")
+    return redirect(url_for("index"))
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5001)
